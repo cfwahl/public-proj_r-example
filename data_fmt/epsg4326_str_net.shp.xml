@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20211217</CreaDate><CreaTime>14012000</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.7\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\StreamToFeature" Date="20211217" Time="135146">StreamToFeature Int_tif21 Int_tif20 C:\Users\a_terui\Documents\ArcGIS\Default.gdb\StreamT_Int_tif2 SIMPLIFY</Process></lineage></DataProperties></Esri></metadata>
