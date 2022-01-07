@@ -5,7 +5,8 @@ pacman::p_load(tidyverse,
                sf,
                raster,
                stars,
-               whitebox)
+               whitebox,
+               foreach)
 
 
 # extract stream grid -----------------------------------------------------
@@ -46,7 +47,8 @@ wgs84_outlet_snap <- st_transform(utm_outlet_snap,
 
 ## export to check snapped file in QGIS
 st_write(wgs84_outlet_snap,
-         dsn = "data_fmt/epsg4326_outlet_sample_snap.gpkg")
+         dsn = "data_fmt/epsg4326_outlet_sample_snap.gpkg",
+         append = FALSE)
 
 
 # watershed delineation ---------------------------------------------------
@@ -79,7 +81,7 @@ wbt_watershed(d8_pntr = temp_d8,
               pour_pts = paste(tempdir(), "outlet.shp", sep = "\\"), 
               output = wsd)
 
-### watershed raster to watershed polygon
+## watershed raster to watershed polygon
 wgs84_wsd_shape <- NULL
 wgs84_wsd_shape <- raster(wsd) %>% 
   st_as_stars() %>% 
@@ -89,3 +91,4 @@ wgs84_wsd_shape <- raster(wsd) %>%
 st_write(wgs84_wsd_shape,
          dsn = "data_fmt/wgs84_watershed.gpkg",
          append = FALSE)
+
