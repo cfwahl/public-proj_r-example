@@ -40,7 +40,8 @@ utm_outlet <- st_transform(wgs84_outlet, crs = 32616)
 ## snap points to the nearest polyline
 source("code/function_st_snap_points.R")
 utm_outlet_snap <- st_snap_points(x = utm_outlet,
-                                  y = utm_channel)
+                                  y = utm_channel) %>% 
+  st_as_sf()
 
 wgs84_outlet_snap <- st_transform(utm_outlet_snap,
                                   crs = 4326)
@@ -52,6 +53,7 @@ st_write(wgs84_outlet_snap,
 
 
 # watershed delineation ---------------------------------------------------
+# this example runs watershed delineation for each sampling site separately
 # whitebox functions cannot take path including whitespace
 # gis files for whitebox is saved in temporary directory
 
@@ -63,32 +65,39 @@ source("code/function_arc2d8.R")
 wgs84_dir_d8 <- arc2d8(wgs84_dir_arc)
 temp_d8 <- paste(tempdir(), "epsg4326_dir_d8.tif", sep = "\\") # temporary file name
 
-## save gis files to temporary directory
-st_write(wgs84_outlet_snap,
-         dsn = tempdir(),
-         "outlet",
-         driver = "ESRI Shapefile",
-         append = FALSE)
+## looping watershed delineation for each sampling site
+wgs84_wsd_shape_comb <- foreach(i = seq_len(nrow(wgs84_outlet_snap)),
+                                .combine = bind_rows) %do% {
+  ## save gis files to temporary directory
+  ## choose one outlet point from the data frame
+  st_write(wgs84_outlet_snap[i,],
+           dsn = tempdir(),
+           "outlet",
+           driver = "ESRI Shapefile",
+           append = FALSE)
+  
+  writeRaster(wgs84_dir_d8,
+              temp_d8,
+              overwrite = TRUE)
+  
+  ## watershed raster file name
+  wsd <- paste(tempdir(), "epsg4326_watershed.tif", sep = "\\")
+  
+  wbt_watershed(d8_pntr = temp_d8,
+                pour_pts = paste(tempdir(), "outlet.shp", sep = "\\"), 
+                output = wsd)
+  
+  ## watershed raster to watershed polygon
+  wgs84_wsd_shape <- NULL
+  wgs84_wsd_shape <- raster(wsd) %>% 
+    st_as_stars() %>% 
+    st_as_sf(merge = TRUE,
+             as_points = FALSE) %>% 
+    mutate(watershed_id = i)
+  
+  return(wgs84_wsd_shape)
+}
 
-writeRaster(wgs84_dir_d8,
-            temp_d8,
-            overwrite = TRUE)
-
-## watershed raster file name
-wsd <- paste(tempdir(), "epsg4326_watershed.tif", sep = "\\")
-
-wbt_watershed(d8_pntr = temp_d8,
-              pour_pts = paste(tempdir(), "outlet.shp", sep = "\\"), 
-              output = wsd)
-
-## watershed raster to watershed polygon
-wgs84_wsd_shape <- NULL
-wgs84_wsd_shape <- raster(wsd) %>% 
-  st_as_stars() %>% 
-  st_as_sf(merge = TRUE,
-           as_points = FALSE)
-
-st_write(wgs84_wsd_shape,
+st_write(wgs84_wsd_shape_comb,
          dsn = "data_fmt/wgs84_watershed.gpkg",
          append = FALSE)
-

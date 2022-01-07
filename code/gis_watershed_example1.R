@@ -40,7 +40,8 @@ utm_outlet <- st_transform(wgs84_outlet, crs = 32616)
 ## snap points to the nearest polyline
 source("code/function_st_snap_points.R")
 utm_outlet_snap <- st_snap_points(x = utm_outlet,
-                                  y = utm_channel)
+                                  y = utm_channel) %>% 
+  st_as_sf()
 
 wgs84_outlet_snap <- st_transform(utm_outlet_snap,
                                   crs = 4326)
