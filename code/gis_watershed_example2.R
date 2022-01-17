@@ -99,5 +99,5 @@ wgs84_wsd_shape_comb <- foreach(i = seq_len(nrow(wgs84_outlet_snap)),
 }
 
 st_write(wgs84_wsd_shape_comb,
-         dsn = "data_fmt/wgs84_watershed.gpkg",
+         dsn = "data_fmt/epsg4326_watershed.gpkg",
          append = FALSE)
