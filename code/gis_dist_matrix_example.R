@@ -17,8 +17,7 @@ utm_sf_outlet <- st_read(dsn = "data_raw/watersheds/watershed1",
 ## stream channel
 utm_sf_channel <- st_read(dsn = "data_raw/watersheds/watershed1",
                           layer = "epsg3722_StrNet_ws1",
-                          drivers = "ESRI Shapefile") %>% 
-  st_transform(crs = 3722)
+                          drivers = "ESRI Shapefile")
 
 ## extract coordinates in a matrix format
 m_coord <- utm_sf_outlet %>% 
