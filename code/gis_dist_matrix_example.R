@@ -1,61 +1,68 @@
-###############  DISTANCE MATRIX  ###########################
+
+# setup -------------------------------------------------------------------
+
+pacman::p_load(tidyverse,
+               sf,
+               raster,
+               mapview)
 
 
-# load packages
-pacman::p_load(tidyverse, sf, raster, tibble)
+# data --------------------------------------------------------------------
 
-# read sites
-utm_outlet <- st_read(dsn = "watershed1",
-                        layer = "epsg3722_sites_ws1",
-                        drivers = "ESRI Shapefile")
-
-# convert to UTM 15
-#utm_outlet <- st_transform(wgs84_outlet, crs = 3722)
-
-# create dataframe 
-df <- utm_outlet %>% 
-  mutate(X = st_coordinates(.)[,1],
-         Y = st_coordinates(.)[,2]) %>% 
-  as_tibble()
-
-
-# UTM X (Longitude)
-# coordinates are from utm_outlet 
-L1 <- df$X
-
-L2 <- df$Y
-
-# combine xy coordinate columns. This is the structure needed for the loop 
-Ls <- cbind(L1, L2)
-
-
-## read channel
-wgs84_channel <- st_read(dsn = "watershed1",
-                         layer = "epsg3722_StrNet_ws1",
+## sampling sites
+utm_sf_outlet <- st_read(dsn = "data_raw/watersheds/watershed1",
+                         layer = "epsg3722_sites_ws1",
                          drivers = "ESRI Shapefile")
 
-#utm_channel <- st_transform(wgs84_channel, crs = 3722)
+## stream channel
+utm_sf_channel <- st_read(dsn = "data_raw/watersheds/watershed1",
+                          layer = "epsg3722_StrNet_ws1",
+                          drivers = "ESRI Shapefile") %>% 
+  st_transform(crs = 3722)
+
+## extract coordinates in a matrix format
+m_coord <- utm_sf_outlet %>% 
+  mutate(X = st_coordinates(.)[,1],
+         Y = st_coordinates(.)[,2]) %>% 
+  as_tibble() %>% 
+  dplyr::select(X, Y) %>% 
+  data.matrix()
+
+## check map
+mapview(utm_sf_channel) + mapview(utm_sf_outlet)
 
 
-extent(wgs84_channel)
+# distance matrix ---------------------------------------------------------
 
 # create rasterized stream network
 # extent from utm_channel
-# if "NA" produced, then increase res
-rml <- rasterize(wgs84_channel, raster(res=10, ex=extent(c(223380,
-                                                           243180,
-                                                           4886235,
-                                                           4905360))))
-Dist <- NULL
-for (i in c(1:(nrow(Ls)))) {
-  rmlW <- rml # reset
-  rmlW[cellFromXY(rmlW,Ls[i,])] <-2 # set starting point
-  dst <- gridDistance(rmlW, origin=2, omit=NA)/1000 # distance from the start point in km
-  dists <- raster::extract(dst, Ls)
-  Dist <- cbind(Dist, dists)
+utm_rs_channel <- rasterize(utm_sf_channel,
+                            raster(res = 10, ex = extent(utm_sf_channel)))
+
+## change non-NA raster values
+utm_rs_channel[!is.na(utm_rs_channel)] <- 1
+
+## distance matrix object
+m_distance <- NULL
+
+for(i in seq_len(nrow(m_coord))) {
+  
+  ## reset the raster values
+  channel <- utm_rs_channel
+  
+  ## replace the value of the origin cell with 2
+  channel[cellFromXY(channel, m_coord[i,])] <- 2
+  
+  ## set origin value, omit value, for distance calculation
+  utm_rs_dist <- gridDistance(channel,
+                              origin = 2,
+                              omit = NA)
+  
+  ## calculate distance from origin to all the other destinations
+  grid_distance <- extract(utm_rs_dist, m_coord)
+  
+  ## column bind to form a distance matrix
+  ## unit: m
+  m_distance <- cbind(m_distance, grid_distance)
+  
 }
-
-# view distance among sites
-Dist
-
-write.csv(Dist,"watershed1\\site_dist2.csv", row.names = TRUE)
