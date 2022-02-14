@@ -2,8 +2,8 @@
 # setup -------------------------------------------------------------------
 
 pacman::p_load(riverdist,
-              dplyr,
-              sf)
+               dplyr,
+               sf)
 
 # set working directory 
 
@@ -11,8 +11,8 @@ pacman::p_load(riverdist,
 
 # read sites
 utm_sf_outlet <- st_read(dsn = "data_raw/watersheds/watershed1",
-                      layer = "epsg3722_sites_ws1",
-                      drivers = "ESRI Shapefile")
+                         layer = "epsg3722_sites_ws1",
+                         drivers = "ESRI Shapefile")
 
 # create dataframe 
 df <- utm_sf_outlet %>% 
@@ -21,9 +21,8 @@ df <- utm_sf_outlet %>%
   as_tibble()
 
 # coordinates  from utm_sf_outlet 
-X <- df$X
-Y <- df$Y
-
+df_coord <- df %>% 
+  distinct(segment, X, Y)
 
 # read in the network
 strnet <- line2network(path="data_raw/watersheds/watershed1", 
