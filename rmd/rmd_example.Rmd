@@ -1,0 +1,18 @@
+---
+title: "Example"
+author: Akira
+output: html_document
+---
+
+# Header 1
+
+## Header 2
+
+Average length of sepal length is `r round(mean(iris$Sepal.Length), 2)`
+
+```{r chunk1, echo = FALSE}
+
+plot(Sepal.Length ~ Sepal.Width, iris)
+
+```
+
