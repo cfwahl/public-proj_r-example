@@ -66,3 +66,20 @@ dmat <- dmat/1000 # convert to km
 # write the data out
 site_dists <- as.data.frame(dmat)
 write.csv(site_dists,"data_raw/watersheds/watershed1\\siteXdist_ws1.csv", row.names = TRUE)
+
+# flow direction ----------------------------------------------------------
+
+# Mouth of network must be specified, get seg and vert from cleanup() above
+setmouth(seg=213, vert=992, rivers=strnet_fixed)
+
+# net = TRUE subtarcts downstream movement from upstream 
+updmat <- upstreammat(seg = site_strnet$seg, vert = site_strnet$vert, 
+                      rivers = strnet_fixed, 
+                      ID = site_strnet$segment, net = TRUE) %>% as.matrix
+
+updmat <- updmat/1000 # convert to km
+
+# write the data out
+site_dists <- as.data.frame(updmat)
+write.csv(site_dists,"watershed1\\siteXdownstdist_ws1.csv", row.names = TRUE)
+
