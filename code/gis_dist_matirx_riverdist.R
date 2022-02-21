@@ -80,6 +80,35 @@ updmat <- upstreammat(seg = site_strnet$seg, vert = site_strnet$vert,
 updmat <- updmat/1000 # convert to km
 
 # write the data out
-site_dists <- as.data.frame(updmat)
-write.csv(site_dists,"watershed1\\siteXdownstdist_ws1.csv", row.names = TRUE)
+#site_dists <- as.data.frame(downdmat)
+#write.csv(site_dists,"watershed7\\siteXdownstdist_ws7.csv", row.names = TRUE)
+
+
+# downstream and upstream distance matrices -----------------------------------
+
+
+### downstream distance
+
+# make negative values, aka upstream dist, zero and only downstream distance remains
+downdmat1 <- pmax(downdmat,0) # if negative value, make zero
+
+# write the data out
+down_dist <- as.data.frame(downdmat1) 
+write.csv(down_dist,"watershed7\\siteXdown_dist_ws7.csv", row.names = TRUE)
+
+
+### upstream distance 
+
+# make positive values, aka downstream dist, zero. Then make the remaining 
+# negative values, aka upstream dist, positive. This is now the upstream 
+# distance among sites
+updmat <- pmin(downdmat,0) # if positive value, make zero
+updmat1 <- abs(updmat) # make negative values positive
+
+# write the data out
+up_dist <- as.data.frame(updmat1)
+write.csv(up_dist,"watershed7\\siteXup_dist_ws7.csv", row.names = TRUE)
+
+
+
 
