@@ -9,6 +9,9 @@ pacman::p_load(riverdist,
 
 # data --------------------------------------------------------------------
 
+# clean objects
+rm(list = ls())
+
 # read sites
 utm_sf_outlet <- st_read(dsn = "data_raw/watersheds/watershed1",
                          layer = "epsg3722_sites_ws1",
@@ -21,8 +24,8 @@ df <- utm_sf_outlet %>%
   as_tibble()
 
 # coordinates  from utm_sf_outlet 
-df_coord <- df %>% 
-  distinct(segment, X, Y)
+X <- df$X
+Y <- df$Y
 
 # read in the network
 strnet <- line2network(path="data_raw/watersheds/watershed1", 
